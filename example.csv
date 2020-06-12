@@ -1,0 +1,49 @@
+06/12/20 21:06:20
+Running benchmarks\problem01\problem01.exe
+Run on (12 X 2208 MHz CPU s)
+CPU Caches:
+  L1 Data 32 KiB (x6)
+  L1 Instruction 32 KiB (x6)
+  L2 Unified 256 KiB (x6)
+  L3 Unified 9216 KiB (x1)
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"stlStyle/8",896000,648.837,645.229,ns,,,,,
+"stlStyle/16",560000,1257.36,1255.58,ns,,,,,
+"stlStyle/32",298667,2377.96,2354.21,ns,,,,,
+"stlStyle/64",100000,5145.28,5156.25,ns,,,,,
+"stlStyle/128",64000,10404.4,10253.9,ns,,,,,
+"stlStyle/256",32000,21218,20996.1,ns,,,,,
+"stlStyle/512",16593,41427.1,41433.1,ns,,,,,
+"stlStyle/1024",8960,77324.5,76729.9,ns,,,,,
+"stlStyle_BigO",,76.9521,76.4644,N,,,,,
+"stlStyle_RMS",,0.0529659,0.0563002,,,,,,
+"singlePass/8",1120000,546.989,544.085,ns,,,,,
+"singlePass/16",560000,1200.54,1199.78,ns,,,,,
+"singlePass/32",298667,2366.94,2354.21,ns,,,,,
+"singlePass/64",144516,4846.32,4865.38,ns,,,,,
+"singlePass/128",74667,10353.2,10463.1,ns,,,,,
+"singlePass/256",32000,21150.1,20996.1,ns,,,,,
+"singlePass/512",17231,40503.6,40805.8,ns,,,,,
+"singlePass/1024",8960,79270.3,78473.8,ns,,,,,
+"singlePass_BigO",,78.0068,77.5165,N,,,,,
+"singlePass_RMS",,0.0265588,0.0341414,,,,,,
+"singlePassWithReserve/8",1000000,553.226,562.5,ns,,,,,
+"singlePassWithReserve/16",640000,1156.53,1171.88,ns,,,,,
+"singlePassWithReserve/32",320000,2210.5,2246.09,ns,,,,,
+"singlePassWithReserve/64",144516,4799.62,4757.26,ns,,,,,
+"singlePassWithReserve/128",64000,9880.38,9765.63,ns,,,,,
+"singlePassWithReserve/256",34462,20498.1,20402.9,ns,,,,,
+"singlePassWithReserve/512",17920,39829,40108.8,ns,,,,,
+"singlePassWithReserve/1024",8960,74513.3,73242.2,ns,,,,,
+"singlePassWithReserve_BigO",,74.1067,73.2493,N,,,,,
+"singlePassWithReserve_RMS",,0.0520044,0.0664498,,,,,,
+"bruteForce/8",23578947,29.4759,29.1574,ns,,,,,
+"bruteForce/16",6400000,116.861,117.188,ns,,,,,
+"bruteForce/32",1120000,580.861,571.987,ns,,,,,
+"bruteForce/64",263529,2702.99,2727.4,ns,,,,,
+"bruteForce/128",74667,9873.15,9835.34,ns,,,,,
+"bruteForce/256",19478,36137.6,36098.4,ns,,,,,
+"bruteForce/512",4978,137958,138108,ns,,,,,
+"bruteForce/1024",1000,539379,546875,ns,,,,,
+"bruteForce_BigO",,453.242,458.776,N,,,,,
+"bruteForce_RMS",,0.605025,0.612523,,,,,,
