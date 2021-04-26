@@ -5,15 +5,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from docopt import docopt
 from complexity import Complexity
+import re
 
 
 class BMResult:
-    def __init__(self, filenames):
+    def __init__(self, filenames, filter_regex="."):
         self.results = defaultdict(lambda: defaultdict(dict))
         self.row_info = {}
         self.sizes = set()
         self.time_units = set()
         self.csv_file_paths = filenames
+        self.filter_regex = re.compile(filter_regex)
 
     def read_info_row(self, info_row):
         for index, tag in enumerate(info_row):
@@ -22,6 +24,8 @@ class BMResult:
     def read_result_row(self, result_row):
         name = result_row[self.row_info["name"]]
         if name.endswith("_BigO") or name.endswith("_RMS"):
+            return
+        if self.filter_regex.search(name) is None:
             return
         try:
             benchmark_properties = name.split("/")
@@ -60,9 +64,6 @@ class BMResult:
 
     def plot_complexity(self, plt_ax, tag, to_plot=None):
         for name in self.results.keys():
-            if to_plot is not None and name not in to_plot:
-                continue
-
             values = np.array([[s, self.results[name][s][tag]] for s in self.results[name]])
 
             complexity = Complexity(values[:, 0], values[:, 1], Complexity.BigO.oAuto)
@@ -109,16 +110,14 @@ class BMResult:
                     va="bottom",
                 )
 
-    def plot_bar_graph(self, plt_ax, tag, to_plot=None):
+    def plot_bar_graph(self, plt_ax, tag):
         single_bar_width = 0.70
         xticks = np.arange(len(self.sizes))  # the label locations
-        bar_count = len(self.results) if (to_plot is None) else len(to_plot)
+        bar_count = len(self.results)
         width = single_bar_width / bar_count  # the width of the bars
         bars = []
         ith = 0
         for name in self.results.keys():
-            if to_plot is not None and name not in to_plot:
-                continue
             values = [
                 self.results[name][s][tag] if s in self.results[name] else 0 for s in self.sizes
             ]
@@ -136,25 +135,25 @@ class BMResult:
         plt_ax.grid()
 
 
-def do_plotting(bm_result, tags, plot_complexity, plot_bar, output_file, to_plot=None):
+def do_plotting(bm_result, tags, plot_complexity, plot_bar, output_file):
     col_size = 2 if not plot_complexity and not plot_bar else 1
     fig, axes = plt.subplots(len(tags), col_size, sharex=False, sharey=False)
     fig.set_size_inches(12, 10)
     axes = np.resize(axes, [len(tags), col_size])
     for row, item in enumerate(tags):
         if plot_bar:
-            bm_result.plot_bar_graph(axes[row][0], item, to_plot)
+            bm_result.plot_bar_graph(axes[row][0], item)
         if plot_complexity:
-            bm_result.plot_complexity(axes[row][0], item, to_plot)
+            bm_result.plot_complexity(axes[row][0], item)
         if not plot_bar and not plot_complexity:
             bm_result.plot_bar_graph(axes[row][0], item)
-            bm_result.plot_complexity(axes[row][1], item, to_plot)
+            bm_result.plot_complexity(axes[row][1], item)
     if output_file is not None:
         fig.savefig(output_file)
 
 
 def process_arguments(arguments):
-    bm_result = BMResult(arguments["PATH"])
+    bm_result = BMResult(arguments["PATH"], arguments["--filter"])
     bm_result.read_csv_file()
     if arguments["--list-benchmarks"]:
         bm_result.print_benchmark_names()
@@ -165,14 +164,12 @@ def process_arguments(arguments):
             tags.append("cpu_time")
         if arguments["--real"]:
             tags.append("real_time")
-        to_plot = arguments["--filter"].split(",") if arguments["--filter"] is not None else None
         do_plotting(
             bm_result,
             tags,
             arguments["--plot-complexity"],
             arguments["--plot-bar"],
             arguments["--output"],
-            to_plot,
         )
 
 
@@ -180,7 +177,7 @@ def get_arguments():
     description = """A program to visualize the google benchmark results.
     Usage:
         options_example.py  --list-benchmarks PATH...
-        options_example.py  (--cpu | --real | --cpu --real) [--plot-complexity | --plot-bar] [--filter=benchmarks] [--output=FILE] PATH...
+        options_example.py  (--cpu | --real | --cpu --real) [--plot-complexity | --plot-bar] [--filter=regex] [--output=FILE] PATH...
 
     Arguments:
         PATH  destination path to the csv files
@@ -192,7 +189,7 @@ def get_arguments():
         --real                  use real times in plot
         --plot-complexity       plot complexity graph
         --plot-bar              plots bar graph
-        --filter=benchmarks     comma separated benchmark names to plot (e.g. BM1, BM2)
+        --filter=regex          regular expression to be filtered [default: .]
         --output=FILE           output file
         --list-benchmarks       list the available benchmark names
     """
