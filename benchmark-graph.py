@@ -12,6 +12,7 @@ class BMResult:
         self.results = defaultdict(lambda: defaultdict(dict))
         self.row_info = {}
         self.sizes = set()
+        self.time_units = set()
         self.csv_file_paths = filenames
 
     def read_info_row(self, info_row):
@@ -23,13 +24,17 @@ class BMResult:
         if name.endswith("_BigO") or name.endswith("_RMS"):
             return
         try:
-            label, size = name.split("/")
+            benchmark_properties = name.split("/")
+            label = benchmark_properties[0]
+            size = benchmark_properties[1]
             size = int(size)
             self.sizes.add(size)
         # pylint: disable=broad-except
         except Exception as exc:
             logging.getLogger("BMResult").exception(exc)
         for tag, index in self.row_info.items():
+            if tag == "time_unit":
+                self.time_units.add(result_row[index])
             if tag not in ["iterations", "real_time", "cpu_time"]:
                 continue
             self.results[label][size][tag] = float(result_row[index])
@@ -45,6 +50,8 @@ class BMResult:
                     elif row[0] == "name":
                         self.read_info_row(row)
                         start_reading_results = True
+        if len(self.time_units) > 1:
+            raise IOError("Inconsistent time units")
         self.sizes = sorted(self.sizes)
 
     def print_benchmark_names(self):
@@ -120,7 +127,7 @@ class BMResult:
             ith += 1
         self.annotate_bars(bars, plt_ax)
         # Add some text for labels, title and custom x-axis tick labels, etc.
-        plt_ax.set_ylabel(f"time (ns)")
+        plt_ax.set_ylabel(f"time ({list(self.time_units)[0]})")
         plt_ax.set_xlabel(f"benchmark argument")
         plt_ax.set_title(tag)
         plt_ax.set_xticks(xticks)
@@ -129,17 +136,19 @@ class BMResult:
         plt_ax.grid()
 
 
-def do_plotting(bm_result, tags, plot_complexity, output_file, to_plot=None):
-    col_size = 2 if plot_complexity else 1
+def do_plotting(bm_result, tags, plot_complexity, plot_bar, output_file, to_plot=None):
+    col_size = 2 if not plot_complexity and not plot_bar else 1
     fig, axes = plt.subplots(len(tags), col_size, sharex=False, sharey=False)
     fig.set_size_inches(12, 10)
     axes = np.resize(axes, [len(tags), col_size])
     for row, item in enumerate(tags):
-        if plot_complexity:
+        if plot_bar:
             bm_result.plot_bar_graph(axes[row][0], item, to_plot)
-            bm_result.plot_complexity(axes[row][1], item, to_plot)
-        else:
+        if plot_complexity:
+            bm_result.plot_complexity(axes[row][0], item, to_plot)
+        if not plot_bar and not plot_complexity:
             bm_result.plot_bar_graph(axes[row][0], item)
+            bm_result.plot_complexity(axes[row][1], item, to_plot)
     if output_file is not None:
         fig.savefig(output_file)
 
@@ -157,14 +166,21 @@ def process_arguments(arguments):
         if arguments["--real"]:
             tags.append("real_time")
         to_plot = arguments["--filter"].split(",") if arguments["--filter"] is not None else None
-        do_plotting(bm_result, tags, arguments["--plot-complexity"], arguments["--output"], to_plot)
+        do_plotting(
+            bm_result,
+            tags,
+            arguments["--plot-complexity"],
+            arguments["--plot-bar"],
+            arguments["--output"],
+            to_plot,
+        )
 
 
 def get_arguments():
     description = """A program to visualize the google benchmark results.
     Usage:
         options_example.py  --list-benchmarks PATH...
-        options_example.py  (--cpu | --real | --cpu --real) [--plot-complexity] [--filter=benchmarks] [--output=FILE] PATH...
+        options_example.py  (--cpu | --real | --cpu --real) [--plot-complexity | --plot-bar] [--filter=benchmarks] [--output=FILE] PATH...
 
     Arguments:
         PATH  destination path to the csv files
@@ -175,6 +191,7 @@ def get_arguments():
         --cpu                   use cpu times in plot
         --real                  use real times in plot
         --plot-complexity       plot complexity graph
+        --plot-bar              plots bar graph
         --filter=benchmarks     comma separated benchmark names to plot (e.g. BM1, BM2)
         --output=FILE           output file
         --list-benchmarks       list the available benchmark names
