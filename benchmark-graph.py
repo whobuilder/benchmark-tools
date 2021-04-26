@@ -1,11 +1,11 @@
 from collections import defaultdict
 import csv
 import logging
+import re
 import matplotlib.pyplot as plt
 import numpy as np
 from docopt import docopt
 from complexity import Complexity
-import re
 
 
 class BMResult:
@@ -62,7 +62,7 @@ class BMResult:
         for name in self.results.keys():
             print(name)
 
-    def plot_complexity(self, plt_ax, tag, to_plot=None):
+    def plot_complexity(self, plt_ax, tag):
         for name in self.results.keys():
             values = np.array([[s, self.results[name][s][tag]] for s in self.results[name]])
 
